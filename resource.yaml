@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otp-deployment
+  labels:
+    name: otp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: otp
+  template:
+    metadata:
+      labels:
+        app: otp
+    spec:
+      containers:
+        - name: otp-server
+          image: localhost:32000/otp-server
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: otp-service
+spec:
+  selector:
+    app: otp
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: otp-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: "otp.main-server"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: otp-service
+                port:
+                  number: 8080
+    - host: "otp.dogac.dev"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: otp-service
+                port:
+                  number: 8080
